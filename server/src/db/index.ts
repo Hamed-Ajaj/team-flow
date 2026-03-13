@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+import * as schema from "./schema";
 
 const port = Number(process.env.DB_PORT || 5432);
 
@@ -11,7 +12,7 @@ const pool = new Pool({
   port: Number.isNaN(port) ? 5432 : port,
 });
 
-export const db = drizzle(pool);
+export const db = drizzle(pool, { schema });
 
 export const testDB = async () => {
   try {

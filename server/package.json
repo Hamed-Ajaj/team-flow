@@ -7,6 +7,12 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:db:up": "docker compose -f ../compose.test.yml up -d postgres_test",
+    "test:db:down": "docker compose -f ../compose.test.yml down",
+    "test:db:push": "DB_PORT=5433 DB_NAME=app_test pnpm db:push",
+    "test:ci": "pnpm test:db:up && pnpm test:db:push && vitest",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio"
@@ -16,23 +22,31 @@
   "license": "ISC",
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.754.0",
+    "@aws-sdk/s3-request-presigner": "^3.754.0",
+    "better-auth": "^1.4.13",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "zod": "^4.0.0",
-    "pg": "^8.16.3",
     "drizzle-orm": "^0.45.1",
-    "better-auth": "^1.4.13"
+    "express": "^5.2.1",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "pg": "^8.16.3",
+    "socket.io": "^4.8.3",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.3",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3",
     "@types/pg": "^8.11.10",
+    "@types/supertest": "^6.0.2",
     "drizzle-kit": "^0.30.2",
-    "tsx": "^4.20.5"
+    "supertest": "^7.0.0",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   },
   "type": "module"
 }

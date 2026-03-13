@@ -1,7 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
+import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth.ts";
+import { registerRoutes } from "./routes";
+import { applySecurity } from "./middleware/security";
+import { errorHandler } from "./middleware/error";
 
 export const app = express();
 
@@ -14,15 +17,10 @@ app.use(
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
+applySecurity(app);
+
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
-});
+registerRoutes(app);
 
-app.get("/api/me", async (req, res) => {
-  const session = await auth.api.getSession({
-    headers: fromNodeHeaders(req.headers),
-  });
-  res.json(session);
-});
+app.use(errorHandler);
