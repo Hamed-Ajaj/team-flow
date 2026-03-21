@@ -11,6 +11,8 @@ import { commentsRouter } from "./comments";
 import { attachmentsRouter } from "./attachments";
 import { notificationsRouter } from "./notifications";
 import { searchRouter } from "./search";
+import { activityRouter } from "./activity";
+import { assigneesRouter } from "./assignees";
 
 export const registerRoutes = (app: Express) => {
   const router = Router();
@@ -35,6 +37,8 @@ export const registerRoutes = (app: Express) => {
   router.use("/attachments", attachmentsRouter);
   router.use("/notifications", notificationsRouter);
   router.use("/search", searchRouter);
+  router.use("/activity", activityRouter);
+  router.use("/tasks", assigneesRouter);
 
   app.use("/api", router);
 };

@@ -11,8 +11,10 @@ import {
   tasks,
 } from "../db/schema";
 import { requireWorkspaceMember } from "./rbac";
+import { logActivity } from "./activity";
+import { emitBoardEvent } from "../realtime/emitter";
 
-const getWorkspaceIdByColumn = async (columnId: number) => {
+const getWorkspaceByColumn = async (columnId: number) => {
   const column = await db.query.columns.findFirst({
     where: (table, { eq }) => eq(table.id, columnId),
     with: { board: { with: { project: true } } },
@@ -21,6 +23,7 @@ const getWorkspaceIdByColumn = async (columnId: number) => {
   return {
     workspaceId: column.board.project.workspaceId,
     boardId: column.board.id,
+    projectId: column.board.project.id,
   };
 };
 
@@ -62,7 +65,9 @@ export const createTask = async (
     position?: number;
   },
 ) => {
-  const { workspaceId } = await getWorkspaceIdByColumn(columnId);
+  const { workspaceId, boardId, projectId } = await getWorkspaceByColumn(
+    columnId,
+  );
   await requireWorkspaceMember(workspaceId, userId);
 
   const [max] = await db
@@ -84,6 +89,18 @@ export const createTask = async (
       createdByUserId: userId,
     })
     .returning();
+
+  await logActivity({
+    workspaceId,
+    projectId,
+    actorUserId: userId,
+    entityType: "task",
+    entityId: String(task.id),
+    action: "created",
+    meta: { title: task.title, boardId },
+  });
+
+  emitBoardEvent(boardId, "task:created", { task });
 
   return task;
 };
@@ -115,6 +132,20 @@ export const updateTask = async (
     .where(eq(tasks.id, taskId))
     .returning();
 
+  if (updated) {
+    await logActivity({
+      workspaceId: task.column.board.project.workspaceId,
+      projectId: task.column.board.project.id,
+      actorUserId: userId,
+      entityType: "task",
+      entityId: String(taskId),
+      action: "updated",
+      meta: { title: updated.title, boardId: task.column.boardId },
+    });
+
+    emitBoardEvent(task.column.boardId, "task:updated", { task: updated });
+  }
+
   return updated;
 };
 
@@ -126,6 +157,16 @@ export const deleteTask = async (taskId: number, userId: string) => {
   if (!task?.column?.board?.project) return;
 
   await requireWorkspaceMember(task.column.board.project.workspaceId, userId);
+  await logActivity({
+    workspaceId: task.column.board.project.workspaceId,
+    projectId: task.column.board.project.id,
+    actorUserId: userId,
+    entityType: "task",
+    entityId: String(taskId),
+    action: "deleted",
+    meta: { boardId: task.column.boardId },
+  });
+  emitBoardEvent(task.column.boardId, "task:deleted", { taskId });
   await db.delete(tasks).where(eq(tasks.id, taskId));
 };
 
@@ -180,6 +221,18 @@ export const createComment = async (
     );
   }
 
+  await logActivity({
+    workspaceId: task.column.board.project.workspaceId,
+    projectId: task.column.board.project.id,
+    actorUserId: userId,
+    entityType: "comment",
+    entityId: String(comment.id),
+    action: "created",
+    meta: { taskId, boardId: task.column.boardId },
+  });
+
+  emitBoardEvent(task.column.boardId, "comment:created", { comment });
+
   return comment;
 };
 
@@ -194,6 +247,15 @@ export const deleteComment = async (
   if (!comment?.task?.column?.board?.project) return;
 
   await requireWorkspaceMember(comment.task.column.board.project.workspaceId, userId);
+  await logActivity({
+    workspaceId: comment.task.column.board.project.workspaceId,
+    projectId: comment.task.column.board.project.id,
+    actorUserId: userId,
+    entityType: "comment",
+    entityId: String(commentId),
+    action: "deleted",
+    meta: { taskId: comment.taskId, boardId: comment.task.column.boardId },
+  });
   await db.delete(comments).where(eq(comments.id, commentId));
 };
 
@@ -224,6 +286,18 @@ export const attachFileRecord = async (
       ...values,
     })
     .returning();
+
+  await logActivity({
+    workspaceId: task.column.board.project.workspaceId,
+    projectId: task.column.board.project.id,
+    actorUserId: userId,
+    entityType: "attachment",
+    entityId: String(attachment.id),
+    action: "created",
+    meta: { taskId, boardId: task.column.boardId },
+  });
+
+  emitBoardEvent(task.column.boardId, "attachment:created", { attachment });
 
   return attachment;
 };

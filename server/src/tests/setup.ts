@@ -9,3 +9,5 @@ process.env.DB_PORT = process.env.DB_PORT ?? "5433";
 process.env.DB_NAME = process.env.DB_NAME ?? "app_test";
 process.env.DB_USER = process.env.DB_USER ?? "app";
 process.env.DB_PASSWORD = process.env.DB_PASSWORD ?? "app";
+process.env.S3_BUCKET = process.env.S3_BUCKET ?? "test-bucket";
+process.env.S3_REGION = process.env.S3_REGION ?? "us-east-1";

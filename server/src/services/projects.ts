@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { boards, projects } from "../db/schema";
 import { requireWorkspaceMember } from "./rbac";
+import { logActivity } from "./activity";
 
 export const listProjects = async (workspaceId: number, userId: string) => {
   await requireWorkspaceMember(workspaceId, userId);
@@ -34,6 +35,16 @@ export const createProject = async (
     createdByUserId: userId,
   });
 
+  await logActivity({
+    workspaceId,
+    projectId: project.id,
+    actorUserId: userId,
+    entityType: "project",
+    entityId: String(project.id),
+    action: "created",
+    meta: { name: project.name },
+  });
+
   return project;
 };
 
@@ -55,6 +66,18 @@ export const updateProject = async (
     .where(eq(projects.id, projectId))
     .returning();
 
+  if (updated) {
+    await logActivity({
+      workspaceId: project.workspaceId,
+      projectId,
+      actorUserId: userId,
+      entityType: "project",
+      entityId: String(projectId),
+      action: "updated",
+      meta: { name: updated.name },
+    });
+  }
+
   return updated;
 };
 
@@ -65,5 +88,13 @@ export const deleteProject = async (projectId: number, userId: string) => {
   if (!project) return;
 
   await requireWorkspaceMember(project.workspaceId, userId);
+  await logActivity({
+    workspaceId: project.workspaceId,
+    projectId,
+    actorUserId: userId,
+    entityType: "project",
+    entityId: String(projectId),
+    action: "deleted",
+  });
   await db.delete(projects).where(eq(projects.id, projectId));
 };

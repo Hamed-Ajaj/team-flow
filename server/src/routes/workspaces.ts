@@ -12,6 +12,7 @@ import {
   deleteWorkspace,
   listMembers,
   listWorkspacesForUser,
+  removeMember,
   updateMemberRole,
   updateWorkspace,
 } from "../services/workspaces";
@@ -103,6 +104,18 @@ workspacesRouter.patch("/:id/members/:memberId", async (req, res, next) => {
       req.params.memberId,
       data.role,
     );
+    res.json(member);
+  } catch (err) {
+    next(err);
+  }
+});
+
+workspacesRouter.delete("/:id/members/:memberId", async (req, res, next) => {
+  try {
+    const userId = (req as AuthedRequest).user.id;
+    const workspaceId = Number(req.params.id);
+    const memberUserId = req.params.memberId;
+    const member = await removeMember(workspaceId, userId, memberUserId);
     res.json(member);
   } catch (err) {
     next(err);

@@ -2,6 +2,8 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "../db";
 import { boards, columns } from "../db/schema";
 import { requireWorkspaceMember } from "./rbac";
+import { logActivity } from "./activity";
+import { emitBoardEvent } from "../realtime/emitter";
 
 export const listBoards = async (projectId: number, userId: string) => {
   const project = await db.query.projects.findFirst({
@@ -44,6 +46,18 @@ export const createBoard = async (
     { boardId: board.id, name: "Done", position: 2, createdByUserId: userId },
   ]);
 
+  await logActivity({
+    workspaceId: project.workspaceId,
+    projectId: project.id,
+    actorUserId: userId,
+    entityType: "board",
+    entityId: String(board.id),
+    action: "created",
+    meta: { name: board.name },
+  });
+
+  emitBoardEvent(board.id, "board:created", { board });
+
   return board;
 };
 
@@ -66,6 +80,19 @@ export const updateBoard = async (
     .where(eq(boards.id, boardId))
     .returning();
 
+  if (updated) {
+    await logActivity({
+      workspaceId: board.project.workspaceId,
+      projectId: board.project.id,
+      actorUserId: userId,
+      entityType: "board",
+      entityId: String(boardId),
+      action: "updated",
+      meta: { name: updated.name },
+    });
+    emitBoardEvent(boardId, "board:updated", { board: updated });
+  }
+
   return updated;
 };
 
@@ -77,6 +104,15 @@ export const deleteBoard = async (boardId: number, userId: string) => {
   if (!board?.project) return;
 
   await requireWorkspaceMember(board.project.workspaceId, userId);
+  await logActivity({
+    workspaceId: board.project.workspaceId,
+    projectId: board.project.id,
+    actorUserId: userId,
+    entityType: "board",
+    entityId: String(boardId),
+    action: "deleted",
+  });
+  emitBoardEvent(boardId, "board:deleted", { boardId });
   await db.delete(boards).where(eq(boards.id, boardId));
 };
 
@@ -126,6 +162,18 @@ export const createColumn = async (
     })
     .returning();
 
+  await logActivity({
+    workspaceId: board.project.workspaceId,
+    projectId: board.project.id,
+    actorUserId: userId,
+    entityType: "column",
+    entityId: String(column.id),
+    action: "created",
+    meta: { name: column.name, boardId },
+  });
+
+  emitBoardEvent(boardId, "column:created", { column });
+
   return column;
 };
 
@@ -148,6 +196,19 @@ export const updateColumn = async (
     .where(eq(columns.id, columnId))
     .returning();
 
+  if (updated) {
+    await logActivity({
+      workspaceId: column.board.project.workspaceId,
+      projectId: column.board.project.id,
+      actorUserId: userId,
+      entityType: "column",
+      entityId: String(columnId),
+      action: "updated",
+      meta: { name: updated.name, boardId: column.boardId },
+    });
+    emitBoardEvent(column.boardId, "column:updated", { column: updated });
+  }
+
   return updated;
 };
 
@@ -159,5 +220,15 @@ export const deleteColumn = async (columnId: number, userId: string) => {
   if (!column?.board?.project) return;
 
   await requireWorkspaceMember(column.board.project.workspaceId, userId);
+  await logActivity({
+    workspaceId: column.board.project.workspaceId,
+    projectId: column.board.project.id,
+    actorUserId: userId,
+    entityType: "column",
+    entityId: String(columnId),
+    action: "deleted",
+    meta: { boardId: column.boardId },
+  });
+  emitBoardEvent(column.boardId, "column:deleted", { columnId });
   await db.delete(columns).where(eq(columns.id, columnId));
 };

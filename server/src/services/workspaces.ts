@@ -7,6 +7,7 @@ import {
 } from "../db/schema";
 import { slugify } from "../utils/slug";
 import { requireWorkspaceRole } from "./rbac";
+import { logActivity } from "./activity";
 
 const generateUniqueSlug = async (name: string) => {
   const base = slugify(name);
@@ -51,6 +52,15 @@ export const createWorkspace = async (userId: string, name: string, slug?: strin
     role: workspaceRole.enumValues[0],
   });
 
+  await logActivity({
+    workspaceId: workspace.id,
+    actorUserId: userId,
+    entityType: "workspace",
+    entityId: String(workspace.id),
+    action: "created",
+    meta: { name: workspace.name },
+  });
+
   return workspace;
 };
 
@@ -74,11 +84,29 @@ export const updateWorkspace = async (
     .where(eq(workspaces.id, workspaceId))
     .returning();
 
+  if (workspace) {
+    await logActivity({
+      workspaceId,
+      actorUserId: userId,
+      entityType: "workspace",
+      entityId: String(workspaceId),
+      action: "updated",
+      meta: { name: workspace.name, slug: workspace.slug },
+    });
+  }
+
   return workspace;
 };
 
 export const deleteWorkspace = async (workspaceId: number, userId: string) => {
   await requireWorkspaceRole(workspaceId, userId, ["owner"]);
+  await logActivity({
+    workspaceId,
+    actorUserId: userId,
+    entityType: "workspace",
+    entityId: String(workspaceId),
+    action: "deleted",
+  });
   await db.delete(workspaces).where(eq(workspaces.id, workspaceId));
 };
 
@@ -107,6 +135,17 @@ export const addMember = async (
     .onConflictDoNothing()
     .returning();
 
+  if (member) {
+    await logActivity({
+      workspaceId,
+      actorUserId: userId,
+      entityType: "workspace_member",
+      entityId: String(member.id),
+      action: "added",
+      meta: { memberUserId, role },
+    });
+  }
+
   return member;
 };
 
@@ -128,6 +167,48 @@ export const updateMemberRole = async (
       ),
     )
     .returning();
+
+  if (member) {
+    await logActivity({
+      workspaceId,
+      actorUserId: userId,
+      entityType: "workspace_member",
+      entityId: String(member.id),
+      action: "role_updated",
+      meta: { memberUserId, role },
+    });
+  }
+
+  return member;
+};
+
+export const removeMember = async (
+  workspaceId: number,
+  userId: string,
+  memberUserId: string,
+) => {
+  await requireWorkspaceRole(workspaceId, userId, ["owner", "admin"]);
+
+  const [member] = await db
+    .delete(workspaceMembers)
+    .where(
+      and(
+        eq(workspaceMembers.workspaceId, workspaceId),
+        eq(workspaceMembers.userId, memberUserId),
+      ),
+    )
+    .returning();
+
+  if (member) {
+    await logActivity({
+      workspaceId,
+      actorUserId: userId,
+      entityType: "workspace_member",
+      entityId: String(member.id),
+      action: "removed",
+      meta: { memberUserId },
+    });
+  }
 
   return member;
 };

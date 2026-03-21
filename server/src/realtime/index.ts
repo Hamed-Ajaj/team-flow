@@ -1,5 +1,6 @@
 import type { Server as HttpServer } from "http";
 import { Server } from "socket.io";
+import { setRealtimeServer } from "./emitter";
 
 export const createRealtimeServer = (server: HttpServer) => {
   const io = new Server(server, {
@@ -8,6 +9,8 @@ export const createRealtimeServer = (server: HttpServer) => {
       credentials: true,
     },
   });
+
+  setRealtimeServer(io);
 
   io.on("connection", (socket) => {
     socket.on("join", (room: string) => {
