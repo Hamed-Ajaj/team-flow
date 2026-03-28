@@ -30,12 +30,20 @@ export const logActivity = async (input: {
 export const listActivity = async (filters: {
   workspaceId: number;
   projectId?: number;
+  entityType?: string;
+  actorUserId?: string;
   limit?: number;
   offset?: number;
 }) => {
   const conditions = [eq(activityLogs.workspaceId, filters.workspaceId)];
   if (filters.projectId) {
     conditions.push(eq(activityLogs.projectId, filters.projectId));
+  }
+  if (filters.entityType) {
+    conditions.push(eq(activityLogs.entityType, filters.entityType));
+  }
+  if (filters.actorUserId) {
+    conditions.push(eq(activityLogs.actorUserId, filters.actorUserId));
   }
 
   return db.query.activityLogs.findMany({

@@ -1,1 +1,77 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Oswald:wght@500;600&display=swap");
 @import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display: "Oswald", "Arial Narrow", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
+
+  --ink: #f8f7f2;
+  --muted: #b4b0a7;
+  --dim: #7d7a73;
+  --surface: #10100f;
+  --surface-2: #171615;
+  --surface-3: #1f1e1c;
+  --surface-4: #2a2826;
+  --accent: #f5b942;
+  --accent-2: #d93d2a;
+  --accent-3: #6fd3b7;
+  --line: rgba(248, 247, 242, 0.15);
+  --shadow: 0 40px 120px rgba(0, 0, 0, 0.45);
+}
+
+@layer base {
+  * {
+    @apply border-[color:var(--line)];
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: radial-gradient(circle at top left, rgba(245, 185, 66, 0.12), transparent 45%),
+      radial-gradient(circle at 10% 60%, rgba(217, 61, 42, 0.15), transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(111, 211, 183, 0.12), transparent 45%),
+      var(--surface);
+    color: var(--ink);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+  }
+
+  button,
+  input,
+  textarea {
+    font-family: inherit;
+  }
+}
+
+@layer utilities {
+  .text-mono {
+    font-family: var(--font-mono);
+  }
+
+  .surface-panel {
+    background: linear-gradient(140deg, rgba(31, 30, 28, 0.95), rgba(17, 16, 15, 0.92));
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+
+  .grid-ambient {
+    background-image: linear-gradient(rgba(248, 247, 242, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(248, 247, 242, 0.06) 1px, transparent 1px);
+    background-size: 42px 42px;
+  }
+
+  .accent-rail {
+    background: linear-gradient(120deg, rgba(245, 185, 66, 0.8), rgba(217, 61, 42, 0.6));
+  }
+}

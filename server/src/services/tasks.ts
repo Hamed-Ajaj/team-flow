@@ -126,6 +126,10 @@ export const updateTask = async (
   if (!task?.column?.board?.project) throw new Error("not_found");
   await requireWorkspaceMember(task.column.board.project.workspaceId, userId);
 
+  const wasMoved =
+    (data.columnId !== undefined && data.columnId !== task.columnId) ||
+    (data.position !== undefined && data.position !== task.position);
+
   const [updated] = await db
     .update(tasks)
     .set({ ...data, updatedAt: new Date() })
@@ -139,11 +143,24 @@ export const updateTask = async (
       actorUserId: userId,
       entityType: "task",
       entityId: String(taskId),
-      action: "updated",
-      meta: { title: updated.title, boardId: task.column.boardId },
+      action: wasMoved ? "moved" : "updated",
+      meta: wasMoved
+        ? {
+            title: updated.title,
+            boardId: task.column.boardId,
+            fromColumnId: task.columnId,
+            toColumnId: updated.columnId,
+            fromPosition: task.position,
+            toPosition: updated.position,
+          }
+        : { title: updated.title, boardId: task.column.boardId },
     });
 
-    emitBoardEvent(task.column.boardId, "task:updated", { task: updated });
+    emitBoardEvent(
+      task.column.boardId,
+      wasMoved ? "task:moved" : "task:updated",
+      { task: updated },
+    );
   }
 
   return updated;

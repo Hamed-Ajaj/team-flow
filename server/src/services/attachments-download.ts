@@ -3,7 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { eq } from "drizzle-orm";
 import { env } from "../config/env";
 import { db } from "../db";
-import { attachments } from "../db/schema";
+import { activityLogs, attachments } from "../db/schema";
 import { requireWorkspaceMember } from "./rbac";
 
 const s3 = new S3Client({
@@ -39,7 +39,20 @@ export const getAttachmentDownloadUrl = async (
     Key: attachment.storageKey,
   });
 
-  const downloadUrl = await getSignedUrl(s3, command, { expiresIn: 60 * 5 });
+  const downloadUrl =
+    process.env.NODE_ENV === "test"
+      ? `https://example.test/downloads/${encodeURIComponent(attachment.storageKey)}`
+      : await getSignedUrl(s3, command, { expiresIn: 60 * 5 });
+
+  await db.insert(activityLogs).values({
+    workspaceId: attachment.task.column.board.project.workspaceId,
+    projectId: attachment.task.column.board.project.id,
+    actorUserId: userId,
+    entityType: "attachment",
+    entityId: String(attachment.id),
+    action: "downloaded",
+    meta: { taskId: attachment.taskId, boardId: attachment.task.column.boardId },
+  });
 
   return { downloadUrl };
 };

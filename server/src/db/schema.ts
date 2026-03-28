@@ -369,3 +369,5 @@ export const attachmentsRelations = relations(attachments, ({ one }) => ({
 }));
 
 export const notificationsRelations = relations(notifications, ({}) => ({}));
+
+export * from "./auth-schema";

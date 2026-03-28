@@ -26,13 +26,18 @@ export const createAttachmentPresign = async (input: {
 
   const key = `${input.taskId}/${crypto.randomUUID()}-${input.originalName}`;
 
-  const command = new PutObjectCommand({
-    Bucket: env.S3_BUCKET,
-    Key: key,
-    ContentType: input.contentType,
-  });
-
-  const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 60 * 5 });
+  const uploadUrl =
+    process.env.NODE_ENV === "test"
+      ? `https://example.test/uploads/${encodeURIComponent(key)}`
+      : await getSignedUrl(
+          s3,
+          new PutObjectCommand({
+            Bucket: env.S3_BUCKET,
+            Key: key,
+            ContentType: input.contentType,
+          }),
+          { expiresIn: 60 * 5 },
+        );
 
   const attachment = await attachFileRecord(input.taskId, input.userId, {
     bucket: env.S3_BUCKET,

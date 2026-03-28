@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AboutRouteImport } from './routes/about'
+import { Route as SessionRouteImport } from './routes/session'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkspacesIndexRouteImport } from './routes/workspaces/index'
+import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
+import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
+import { Route as BoardsBoardIdIndexRouteImport } from './routes/boards/$boardId/index'
+import { Route as WorkspacesWorkspaceIdProjectsRouteImport } from './routes/workspaces/$workspaceId/projects'
+import { Route as ProjectsProjectIdBoardsRouteImport } from './routes/projects/$projectId/boards'
 
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const SessionRoute = SessionRouteImport.update({
+  id: '/session',
+  path: '/session',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,40 +28,120 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkspacesIndexRoute = WorkspacesIndexRouteImport.update({
+  id: '/workspaces/',
+  path: '/workspaces/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignUpRoute = AuthSignUpRouteImport.update({
+  id: '/auth/sign-up',
+  path: '/auth/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignInRoute = AuthSignInRouteImport.update({
+  id: '/auth/sign-in',
+  path: '/auth/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BoardsBoardIdIndexRoute = BoardsBoardIdIndexRouteImport.update({
+  id: '/boards/$boardId/',
+  path: '/boards/$boardId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspacesWorkspaceIdProjectsRoute =
+  WorkspacesWorkspaceIdProjectsRouteImport.update({
+    id: '/workspaces/$workspaceId/projects',
+    path: '/workspaces/$workspaceId/projects',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ProjectsProjectIdBoardsRoute = ProjectsProjectIdBoardsRouteImport.update({
+  id: '/projects/$projectId/boards',
+  path: '/projects/$projectId/boards',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/session': typeof SessionRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
+  '/workspaces/': typeof WorkspacesIndexRoute
+  '/projects/$projectId/boards': typeof ProjectsProjectIdBoardsRoute
+  '/workspaces/$workspaceId/projects': typeof WorkspacesWorkspaceIdProjectsRoute
+  '/boards/$boardId/': typeof BoardsBoardIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/session': typeof SessionRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
+  '/workspaces': typeof WorkspacesIndexRoute
+  '/projects/$projectId/boards': typeof ProjectsProjectIdBoardsRoute
+  '/workspaces/$workspaceId/projects': typeof WorkspacesWorkspaceIdProjectsRoute
+  '/boards/$boardId': typeof BoardsBoardIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/session': typeof SessionRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
+  '/workspaces/': typeof WorkspacesIndexRoute
+  '/projects/$projectId/boards': typeof ProjectsProjectIdBoardsRoute
+  '/workspaces/$workspaceId/projects': typeof WorkspacesWorkspaceIdProjectsRoute
+  '/boards/$boardId/': typeof BoardsBoardIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths:
+    | '/'
+    | '/session'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
+    | '/workspaces/'
+    | '/projects/$projectId/boards'
+    | '/workspaces/$workspaceId/projects'
+    | '/boards/$boardId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to:
+    | '/'
+    | '/session'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
+    | '/workspaces'
+    | '/projects/$projectId/boards'
+    | '/workspaces/$workspaceId/projects'
+    | '/boards/$boardId'
+  id:
+    | '__root__'
+    | '/'
+    | '/session'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
+    | '/workspaces/'
+    | '/projects/$projectId/boards'
+    | '/workspaces/$workspaceId/projects'
+    | '/boards/$boardId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
+  SessionRoute: typeof SessionRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignUpRoute: typeof AuthSignUpRoute
+  WorkspacesIndexRoute: typeof WorkspacesIndexRoute
+  ProjectsProjectIdBoardsRoute: typeof ProjectsProjectIdBoardsRoute
+  WorkspacesWorkspaceIdProjectsRoute: typeof WorkspacesWorkspaceIdProjectsRoute
+  BoardsBoardIdIndexRoute: typeof BoardsBoardIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
+    '/session': {
+      id: '/session'
+      path: '/session'
+      fullPath: '/session'
+      preLoaderRoute: typeof SessionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -65,12 +151,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workspaces/': {
+      id: '/workspaces/'
+      path: '/workspaces'
+      fullPath: '/workspaces/'
+      preLoaderRoute: typeof WorkspacesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/sign-up': {
+      id: '/auth/sign-up'
+      path: '/auth/sign-up'
+      fullPath: '/auth/sign-up'
+      preLoaderRoute: typeof AuthSignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/sign-in': {
+      id: '/auth/sign-in'
+      path: '/auth/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/boards/$boardId/': {
+      id: '/boards/$boardId/'
+      path: '/boards/$boardId'
+      fullPath: '/boards/$boardId/'
+      preLoaderRoute: typeof BoardsBoardIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspaces/$workspaceId/projects': {
+      id: '/workspaces/$workspaceId/projects'
+      path: '/workspaces/$workspaceId/projects'
+      fullPath: '/workspaces/$workspaceId/projects'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$projectId/boards': {
+      id: '/projects/$projectId/boards'
+      path: '/projects/$projectId/boards'
+      fullPath: '/projects/$projectId/boards'
+      preLoaderRoute: typeof ProjectsProjectIdBoardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
+  SessionRoute: SessionRoute,
+  AuthSignInRoute: AuthSignInRoute,
+  AuthSignUpRoute: AuthSignUpRoute,
+  WorkspacesIndexRoute: WorkspacesIndexRoute,
+  ProjectsProjectIdBoardsRoute: ProjectsProjectIdBoardsRoute,
+  WorkspacesWorkspaceIdProjectsRoute: WorkspacesWorkspaceIdProjectsRoute,
+  BoardsBoardIdIndexRoute: BoardsBoardIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

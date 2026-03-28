@@ -67,7 +67,7 @@ Base path: `/api`
 - `GET /search?boardId=...&q=...`
 
 ## Activity
-- `GET /activity?workspaceId=...&projectId?=...&limit?=...&offset?=...`
+- `GET /activity?workspaceId=...&projectId?=...&entityType?=...&actorUserId?=...&limit?=...&offset?=...`
 
 ## Realtime Events (Socket.IO)
 Room: `board:{boardId}`
